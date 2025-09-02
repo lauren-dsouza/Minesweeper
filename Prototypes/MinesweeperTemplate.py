@@ -3,7 +3,7 @@ import pygame_textinput as textinput
 import random
 
 
-## Minesweeper prototype
+# Minesweeper prototype
 class Minesweeper:
     def __init__(self, width, height, num_mines):
         self.width = width
@@ -15,7 +15,8 @@ class Minesweeper:
         self.game_over = False
         self.mines_placed = False  # Flag to track if mines have been placed
 
-    def placeMines(self, safe_x = None, safe_y = None): ## Need to account for first square safe
+    def place_mines(self, safe_x=None, safe_y=None): 
+        """Place mines, ensuring the first square is safe"""
         mines = 0
         while mines < self.num_mines:
             x = random.randint(0, self.width-1)
@@ -23,33 +24,33 @@ class Minesweeper:
             if self.board[y][x] != -1 and not (x == safe_x and y == safe_y):
                 self.board[y][x] = -1
                 mines += 1
-    
-    def calculateSquare(self, x, y) :
-        if (self.board[y][x] == -1) :
+
+    def calculate_square(self, x, y):
+        if self.board[y][x] == -1:
             return
         adj = 0
         for i in range(-1, 2):
             for j in range(-1, 2):
-                ## If not out of bounds
+                # If not out of bounds
                 if 0 <= x + i < self.width and 0 <= y + j < self.height:
-                    ## If adjacent mine then ++
+                    # If adjacent mine then ++
                     if self.board[y + j][x + i] == -1:
                         adj += 1
         self.board[y][x] = adj
 
-    def calculateSquares(self):
+    def calculate_squares(self):
         for y in range(self.height):
             for x in range(self.width):
-                self.calculateSquare(x, y)
-    
-    def revealSquare(self, x, y):
+                self.calculate_square(x, y)
+
+    def reveal_square(self, x, y):
         if self.revealed[y][x] or self.flags[y][x] or self.game_over:
             return
             
         # Place mines after first click, ensuring the first square is safe
         if not self.mines_placed:
-            self.placeMines(safe_x=x, safe_y=y)
-            self.calculateSquares()
+            self.place_mines(safe_x=x, safe_y=y)
+            self.calculate_squares()
             self.mines_placed = True
             
         self.revealed[y][x] = True
@@ -62,31 +63,31 @@ class Minesweeper:
             for i in range(-1, 2):
                 for j in range(-1, 2):
                     if 0 <= x + i < self.width and 0 <= y + j < self.height:
-                        self.revealSquare(x + i, y + j)
+                        self.reveal_square(x + i, y + j)
 
-    def toggleFlag(self, x, y):
+    def toggle_flag(self, x, y):
         if self.revealed[y][x] or self.game_over:
             return
 
         self.flags[y][x] = not self.flags[y][x]
 
-    def isGameOver(self):
+    def is_game_over(self):
         return self.game_over
 
-    def isGameWon(self):
+    def is_game_won(self):
         return all(self.revealed[y][x] or self.board[y][x] == -1 for y in range(self.height) for x in range(self.width))
-    
-    def getDisplayBoard(self):
-        displayBoard = [[] for _ in range(self.height)]
+
+    def get_display_board(self):
+        display_board = [[] for _ in range(self.height)]
         for y in range(self.height):
             for x in range(self.width):
                 if self.revealed[y][x]:
-                    displayBoard[y].append(self.board[y][x])
+                    display_board[y].append(self.board[y][x])
                 elif self.flags[y][x]:
-                    displayBoard[y].append("F")
+                    display_board[y].append("F")
                 else:
-                    displayBoard[y].append("?")
-        return displayBoard
+                    display_board[y].append("?")
+        return display_board
 
 
 class Game:
@@ -95,12 +96,12 @@ class Game:
         self.quit = False
         pg.init()
 
-    def startGame(self, width: int, height: int, num_mines: int):
-        '''Start a new game with given width, height, and num_mines.'''
+    def start_game(self, width: int, height: int, num_mines: int):
+        """Start a new game with given width, height, and num_mines."""
         self.minesweeper = Minesweeper(width, height, num_mines)
-    
-    def exitGame(self):
-        '''Perform any game cleanup here, then quit().'''
+
+    def exit_game(self):
+        """Perform any game cleanup here, then quit()."""
         pg.quit()
 
     def run(self):
@@ -108,13 +109,13 @@ class Game:
         clock = pg.time.Clock()
         font = pg.font.SysFont(None, 24)
 
-        ## Text boxes
+        # Text boxes
         width_input = textinput.TextInputVisualizer(manager=textinput.TextInputManager(validator=lambda x: x.isdigit() or x == ''))
         height_input = textinput.TextInputVisualizer(manager=textinput.TextInputManager(validator=lambda x: x.isdigit() or x == ''))
         mines_input = textinput.TextInputVisualizer(manager=textinput.TextInputManager(validator=lambda x: x.isdigit() or x == ''))
         selection = 0
 
-        while not self.minesweeper and not self.quit: ## Title screen loop
+        while not self.minesweeper and not self.quit:  # Title screen loop
             screen.fill((255, 255, 255))
             pg.display.set_caption("Minesweeper -- Title Screen")
 
@@ -127,7 +128,7 @@ class Game:
 
             events = pg.event.get()
 
-            ## Only update one input at a time, but display all three
+            # Only update one input at a time, but display all three
             if selection == 0:
                 width_input.cursor_visible = True
                 width_input.update(events)
@@ -141,28 +142,28 @@ class Game:
             screen.blit(height_input.surface, (250, 140))
             screen.blit(mines_input.surface, (250, 180))
 
-            ## Handle key presses
+            # Handle key presses
             for event in events:
                 if event.type == pg.QUIT:
                     self.quit = True
                     break
                 if event.type == pg.KEYDOWN and event.key == pg.K_TAB:
-                    ## Set all cursors invisible, cycle selection
+                    # Set all cursors invisible, cycle selection
                     width_input.cursor_visible = False
                     height_input.cursor_visible = False
                     mines_input.cursor_visible = False
                     selection = (selection + 1) % 3
                 if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
-                    if (width_input.value and height_input.value and mines_input.value):
+                    if width_input.value and height_input.value and mines_input.value:
                         width = int(width_input.value)
                         height = int(height_input.value)
                         num_mines = int(mines_input.value)
-                        self.startGame(width, height, num_mines)
+                        self.start_game(width, height, num_mines)
 
             pg.display.update()
             clock.tick(60)
 
-        while not self.quit: ## Main game loop
+        while not self.quit:  # Main game loop
             pg.display.set_caption("Minesweeper -- Game")
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -173,14 +174,14 @@ class Game:
                     grid_x = x // (400 // self.minesweeper.width)
                     grid_y = y // (400 // self.minesweeper.height)
                     if event.button == 1:
-                        self.minesweeper.revealSquare(grid_x, grid_y)
+                        self.minesweeper.reveal_square(grid_x, grid_y)
                     elif event.button == 3:
-                        self.minesweeper.toggleFlag(grid_x, grid_y)
+                        self.minesweeper.toggle_flag(grid_x, grid_y)
 
             screen.fill((255, 255, 255))
             for y in range(self.minesweeper.height):
                 for x in range(self.minesweeper.width):
-                    value = self.minesweeper.getDisplayBoard()[y][x]
+                    value = self.minesweeper.get_display_board()[y][x]
                     if value == -1:
                         color = (255, 0, 0)
                     elif value == 0:
@@ -195,15 +196,15 @@ class Game:
                     elif self.minesweeper.flags[y][x]:
                         text = font.render("F", True, (0, 0, 0))
                         screen.blit(text, (x * (400 // self.minesweeper.width) + 10, y * (400 // self.minesweeper.height) + 10))
-            
-            if self.minesweeper.isGameOver():
+
+            if self.minesweeper.is_game_over():
                 screen.fill((255, 255, 255))
                 text = font.render("Game Over", True, (0, 0, 0))
                 screen.blit(text, (150, 200))
                 pg.display.flip()
                 pg.time.wait(2000)
                 break
-            elif self.minesweeper.isGameWon():
+            elif self.minesweeper.is_game_won():
                 screen.fill((255, 255, 255))
                 text = font.render("You Win!", True, (0, 0, 0))
                 screen.blit(text, (150, 200))
@@ -213,7 +214,7 @@ class Game:
 
             pg.display.flip()
             clock.tick(60)
-        self.exitGame()
+        self.exit_game()
 
 
 main = Game()
