@@ -13,7 +13,7 @@ class Minesweeper:
         self.revealed = [[False for _ in range(width)] for _ in range(height)]
         self.flags = [[False for _ in range(width)] for _ in range(height)]
         self.game_over = False
-        self.placeMines() ## Need to move this to allow for safe first square
+        self.mines_placed = False  # Flag to track if mines have been placed
         self.calculateSquares()
 
     def placeMines(self): ## Need to account for first square safe
@@ -21,7 +21,7 @@ class Minesweeper:
         while mines < self.num_mines:
             x = random.randint(0, self.width-1)
             y = random.randint(0, self.height-1)
-            if self.board[y][x] != -1: ## and not first square
+            if self.board[y][x] != -1 and not (x == safe_x and y == safe_y):
                 self.board[y][x] = -1
                 mines += 1
     
@@ -46,7 +46,13 @@ class Minesweeper:
     def revealSquare(self, x, y):
         if self.revealed[y][x] or self.flags[y][x] or self.game_over:
             return
-        
+            
+        # Place mines after first click, ensuring the first square is safe
+        if not self.mines_placed:
+            self.placeMines(safe_x=x, safe_y=y)
+            self.calculateSquares()
+            self.mines_placed = True
+            
         self.revealed[y][x] = True
 
         if self.board[y][x] == -1:
