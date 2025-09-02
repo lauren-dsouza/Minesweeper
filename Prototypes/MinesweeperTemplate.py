@@ -14,9 +14,8 @@ class Minesweeper:
         self.flags = [[False for _ in range(width)] for _ in range(height)]
         self.game_over = False
         self.mines_placed = False  # Flag to track if mines have been placed
-        self.calculateSquares()
 
-    def placeMines(self): ## Need to account for first square safe
+    def placeMines(self, safe_x = None, safe_y = None): ## Need to account for first square safe
         mines = 0
         while mines < self.num_mines:
             x = random.randint(0, self.width-1)
