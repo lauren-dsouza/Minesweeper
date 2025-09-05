@@ -12,8 +12,6 @@ import random
 # Window layout
 WIN_SIZE = (440, 440)
 GRID_PIXELS = 400
-MARGIN_LEFT = 40
-MARGIN_TOP = 40
 
 # Board layout (fixed 10x10)
 BOARD_WIDTH = 10
@@ -136,10 +134,11 @@ class Game:
         self.quit = False
         self.margin_left = margin_left
         self.margin_top = margin_top
-        self.grid_x0 = self.margin_left
-        self.grid_y0 = self.margin_top
-        self.grid_x1 = self.grid_x0 + GRID_PIXELS
-        self.grid_y1 = self.grid_y0 + GRID_PIXELS
+        #Playable grid rectangle/square in window pixels (area AFTER the label margins)
+        self.grid_x0 = self.margin_left #left edge of PLAYABLE board
+        self.grid_y0 = self.margin_top #top edge of PLAYABLE board
+        self.grid_x1 = self.grid_x0 + GRID_PIXELS #right edge of board
+        self.grid_y1 = self.grid_y0 + GRID_PIXELS #bottom edge of board
         pg.init()
 
     def start_game(self, width: int, height: int, num_mines: int):
@@ -169,7 +168,7 @@ class Game:
         clock = pg.time.Clock()
         font = pg.font.SysFont(None, 24)
 
-        # Init text boxes - cap mines at 20 as per requirements
+        # Cap mines at 20 as per requirements
         mines_input = textinput.TextInputVisualizer(manager=textinput.TextInputManager(validator=lambda x: (x.isdigit() and int(x) <= 20) or x == ''))
 
         # Title screen loop
@@ -183,8 +182,7 @@ class Game:
 
             events = pg.event.get()
 
-            # Only update one text input at a time, but display all three
-            mines_input.cursor_visible = False
+            # Updates mine and render mine-count input field
             mines_input.update(events)
             screen.blit(mines_input.surface, (250, 180))
             
@@ -198,7 +196,7 @@ class Game:
                     self.quit = True
                     break
                 if event.type == pg.KEYDOWN and event.key == pg.K_RETURN:
-                    # Start game if all fields filled and mines 10-20
+                    # Start game if mine count provided and within 10-20 range
                     if (mines_input.value and 10 <= int(mines_input.value) <= 20):
                         num_mines = int(mines_input.value)
                         self.start_game(BOARD_WIDTH, BOARD_HEIGHT, num_mines)
