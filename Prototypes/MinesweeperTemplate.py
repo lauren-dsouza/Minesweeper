@@ -27,7 +27,7 @@ REVEALED_EMPTY = (200, 200, 200)
 REVEALED_NUMBER = (160, 160, 160)
 MINE_RED = (255, 0, 0)
 LABEL_GRAY = (90, 90, 90)
-
+TRANSPARENT_RED = (255, 155, 155, 180) #RGBA
 
 # Minesweeper prototype
 class Minesweeper:
@@ -88,6 +88,7 @@ class Minesweeper:
 
         # Mine then lose
         if self.board[y][x] == -1:
+            self.reveal_all_mines()
             self.game_over = True
             return
 
@@ -125,6 +126,13 @@ class Minesweeper:
                 else:
                     display_board[y].append("?")
         return display_board
+    
+    #iterates through the board and reveals all squares with mines
+    def reveal_all_mines(self):
+        for y in range(self.height):
+            for x in range(self.width):
+                if self.board[y][x] == -1:
+                    self.revealed[y][x] = True
 
 
 class Game:
@@ -272,12 +280,13 @@ class Game:
             # Game end
             # TODO: Transparent end screens? Or at least display final board first
             if self.minesweeper.is_game_over(): # Loss
-                screen.fill(WHITE)
+                win_width, win_height = screen.get_size()
+                overlay = pg.Surface((win_width, win_height), pg.SRCALPHA) # Create an overlay surface that allows for transparency
+                overlay.fill(TRANSPARENT_RED, (0, win_height // 2 - 30, win_width, 60)) 
+                screen.blit(overlay, (0, 0))
                 text = font.render("Game Over", True, BLACK)
-                screen.blit(text, (150, 200))
+                screen.blit(text, (win_width // 2 - text.get_width() // 2, win_height // 2 - text.get_height() // 2))
                 pg.display.flip()
-                pg.time.wait(2000)
-                break
             elif self.minesweeper.is_game_won(): # Win
                 screen.fill(WHITE)
                 text = font.render("You Win!", True, BLACK)
